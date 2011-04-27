@@ -1,9 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
 using System.Web.Routing;
+using BaseUcdArchProject.Core;
+using BaseUcdArchProject.Web.Controllers;
+using Castle.Windsor;
+using Microsoft.Practices.ServiceLocation;
+using UCDArch.Data.NHibernate;
+using UCDArch.Web.IoC;
+using UCDArch.Web.ModelBinder;
 
 namespace BaseUcdArchProject.Web
 {
@@ -34,7 +37,34 @@ namespace BaseUcdArchProject.Web
             AreaRegistration.RegisterAllAreas();
 
             RegisterGlobalFilters(GlobalFilters.Filters);
+
+#if DEBUG
+            HibernatingRhinos.Profiler.Appender.NHibernate.NHibernateProfiler.Initialize();
+#endif
+
             RegisterRoutes(RouteTable.Routes);
+
+            ModelBinders.Binders.DefaultBinder = new UCDArchModelBinder();
+
+            //AutomapperConfig.Configure();
+
+            NHibernateSessionConfiguration.Mappings.UseFluentMappings(typeof(Order).Assembly);
+
+            IWindsorContainer container = InitializeServiceLocator();
+        }
+
+        private static IWindsorContainer InitializeServiceLocator()
+        {
+            IWindsorContainer container = new WindsorContainer();
+
+            ControllerBuilder.Current.SetControllerFactory(new WindsorControllerFactory(container));
+
+            container.RegisterControllers(typeof(HomeController).Assembly);
+            ComponentRegistrar.AddComponentsTo(container);
+
+            ServiceLocator.SetLocatorProvider(() => new WindsorServiceLocator(container));
+
+            return container;
         }
     }
 }

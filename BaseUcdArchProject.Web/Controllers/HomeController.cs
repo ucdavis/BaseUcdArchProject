@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using UCDArch.Web.Attributes;
+using BaseUcdArchProject.Core;
 
 namespace BaseUcdArchProject.Web.Controllers
 {
@@ -19,6 +20,9 @@ namespace BaseUcdArchProject.Web.Controllers
 
         public ActionResult About()
         {
+            var o = Repository.OfType<Order>().GetAll();
+
+
             return View();
         }
     }
